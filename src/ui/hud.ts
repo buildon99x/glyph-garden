@@ -2,6 +2,15 @@ import { candidateSlots, type CandidateSlot } from "../game/input/actions";
 import type { GardenState, RuneId } from "../game/simulation/state";
 import { labelForGlyph } from "../game/simulation/systems/gardenSystem";
 
+const glyphHints = {
+  seed: "Grows near Water",
+  water: "Turns Seeds into Bloom",
+  bloom: "Scores row harmony",
+  stone: "Amplifies neighbors",
+  moth: "Likes nearby Bloom",
+  prism: "Copies diagonal color"
+};
+
 export interface HudApi {
   mount(callbacks: {
     onCandidate: (slot: CandidateSlot) => void;
@@ -30,11 +39,15 @@ export function createHud(root: HTMLElement): HudApi {
 
       <aside class="sidepanel">
         <section>
+          <h2>Last Move</h2>
+          <div class="last-move" data-last-move></div>
+        </section>
+        <section>
           <h2>World Rules</h2>
           <div class="rule-list" data-rules></div>
         </section>
         <section>
-          <h2>Goals</h2>
+          <div class="section-title"><h2>Goals</h2><span data-required-goals></span></div>
           <div class="goal-list" data-goals></div>
         </section>
         <section>
@@ -73,6 +86,8 @@ export function createHud(root: HTMLElement): HudApi {
       setText(root, "[data-garden]", `${state.garden}/${state.maxGardens}`);
       setText(root, "[data-turn]", state.phase === "playing" ? `${Math.min(state.turn, state.maxTurns)}/${state.maxTurns}` : "-");
       setText(root, "[data-chain]", `${state.bestChain}`);
+      setText(root, "[data-required-goals]", `Need ${requiredGoals(state)}`);
+      renderLastMove(root, state);
       renderCandidates(root, state, callbacks);
       renderRules(root, state);
       renderGoals(root, state);
@@ -80,6 +95,22 @@ export function createHud(root: HTMLElement): HudApi {
       renderPanel(root, state, callbacks);
     }
   };
+}
+
+function renderLastMove(root: HTMLElement, state: GardenState): void {
+  const container = root.querySelector<HTMLElement>("[data-last-move]");
+  if (!container) return;
+  if (!state.lastPlacement) {
+    container.innerHTML = `<p class="empty">Place a glyph to see its score.</p>`;
+    return;
+  }
+  const changed = state.lastPlacement.changed.length > 1 ? state.lastPlacement.changed.map(labelForGlyph).join(", ") : "No extra reaction";
+  container.innerHTML = `
+    <article class="last-card">
+      <strong>${labelForGlyph(state.lastPlacement.kind)} +${state.lastPlacement.score}</strong>
+      <span>Chain ${state.lastPlacement.chain} · ${changed}</span>
+    </article>
+  `;
 }
 
 function renderCandidates(root: HTMLElement, state: GardenState, callbacks: Parameters<HudApi["mount"]>[0] | null): void {
@@ -95,11 +126,18 @@ function renderCandidates(root: HTMLElement, state: GardenState, callbacks: Para
     button.innerHTML = `
       <strong>${slot + 1}</strong>
       <span class="glyph-dot ${candidate?.color ?? "green"}"></span>
-      <span>${candidate ? labelForGlyph(candidate.kind) : "Empty"}</span>
+      <span class="candidate-copy">
+        <b>${candidate ? labelForGlyph(candidate.kind) : "Empty"}</b>
+        <small>${candidate ? glyphHints[candidate.kind] : ""}</small>
+      </span>
     `;
     button.addEventListener("click", () => callbacks?.onCandidate(slot));
     container.appendChild(button);
   }
+}
+
+function requiredGoals(state: GardenState): number {
+  return state.runes.some((rune) => rune.id === "goalSwap") && state.garden <= 2 ? 1 : 2;
 }
 
 function renderRules(root: HTMLElement, state: GardenState): void {
