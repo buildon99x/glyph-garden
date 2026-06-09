@@ -42,4 +42,5 @@ What user or project problem does this solve?
 
 | Spec | Status | Topic |
 |------|--------|-------|
+| [glyph-garden-initial-game-spec.md](glyph-garden-initial-game-spec.md) | Accepted | Initial Glyph Garden game design |
 | [project-knowledge-management.md](project-knowledge-management.md) | Accepted | Context and document management structure |
