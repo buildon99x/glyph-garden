@@ -1,9 +1,10 @@
 import Phaser from "phaser";
 import type { HudApi } from "../../ui/hud";
 import type { CandidateSlot } from "../../game/input/actions";
-import type { CandidateTile, GardenState, GlyphColor, GlyphKind, GlyphTile, GridPoint, RuneId } from "../../game/simulation/state";
+import type { CandidateTile, GardenState, GlyphColor, GlyphKind, GlyphTile, GridPoint, RuneId, UnlockId } from "../../game/simulation/state";
 import {
   chooseRune,
+  createDailyGardenState,
   createGardenState,
   labelForGlyph,
   placeSelectedCandidate,
@@ -16,9 +17,10 @@ import {
 const TILE = 72;
 const ORIGIN_X = 226;
 const ORIGIN_Y = 98;
+const UNLOCK_STORAGE_KEY = "glyph-garden-unlocks";
 
 export class GardenScene extends Phaser.Scene {
-  private state: GardenState = createGardenState();
+  private state: GardenState = createGardenState(Date.now() % 100000, { unlockIds: loadUnlockIds() });
   private readonly hud: HudApi;
   private boardLayer!: Phaser.GameObjects.Layer;
   private glyphLayer!: Phaser.GameObjects.Layer;
@@ -50,7 +52,9 @@ export class GardenScene extends Phaser.Scene {
       onRestart: () => {
         this.state = restartRun(this.state);
         this.render();
-      }
+      },
+      onStandard: () => this.startStandardRun(),
+      onDaily: () => this.startDailyRun()
     });
     this.render();
   }
@@ -72,6 +76,7 @@ export class GardenScene extends Phaser.Scene {
       }
       const previousPlacement = this.state.lastPlacement;
       placeSelectedCandidate(this.state, cell.x, cell.y);
+      persistUnlock(this.state);
       this.pulseCell(cell.x, cell.y);
       if (this.state.lastPlacement !== previousPlacement) {
         this.floatLastScore();
@@ -100,6 +105,17 @@ export class GardenScene extends Phaser.Scene {
 
   private takeRune(rune: RuneId): void {
     chooseRune(this.state, rune);
+    persistUnlock(this.state);
+    this.render();
+  }
+
+  private startStandardRun(): void {
+    this.state = createGardenState(Date.now() % 100000, { unlockIds: loadUnlockIds() });
+    this.render();
+  }
+
+  private startDailyRun(): void {
+    this.state = createDailyGardenState(loadUnlockIds());
     this.render();
   }
 
@@ -115,9 +131,9 @@ export class GardenScene extends Phaser.Scene {
     background.fillRoundedRect(214, 86, 424, 424, 6);
     this.boardLayer.add(background);
 
-    const title = this.add.text(226, 552, "Build reactions. Complete 2 of 3 goals. Survive five gardens.", {
+    const title = this.add.text(226, 552, "반응을 만들고 목표 3개 중 2개를 달성해 다섯 정원을 지나가세요.", {
       color: "#b8cfc3",
-      fontFamily: "monospace",
+      fontFamily: "sans-serif",
       fontSize: "14px"
     });
     this.boardLayer.add(title);
@@ -211,7 +227,7 @@ export class GardenScene extends Phaser.Scene {
 
     const label = this.add.text(point.x, point.y + 25, labelForGlyph(tile.kind), {
       color: "#f8f0df",
-      fontFamily: "monospace",
+      fontFamily: "sans-serif",
       fontSize: "10px"
     });
     label.setOrigin(0.5);
@@ -244,7 +260,7 @@ export class GardenScene extends Phaser.Scene {
     const point = cellToWorld(placement.x, placement.y);
     const text = this.add.text(point.x, point.y - 34, `+${placement.score}`, {
       color: "#fff2bf",
-      fontFamily: "monospace",
+      fontFamily: "sans-serif",
       fontSize: "18px",
       fontStyle: "bold",
       stroke: "#101414",
@@ -306,10 +322,12 @@ function diagonal(origin: GridPoint): GridPoint[] {
 
 function drawGlyphShape(graphics: Phaser.GameObjects.Graphics, kind: GlyphKind, x: number, y: number): void {
   if (kind === "seed") {
-    graphics.fillEllipse(x - 8, y, 20, 32);
-    graphics.strokeEllipse(x - 8, y, 20, 32);
-    graphics.fillEllipse(x + 10, y - 4, 20, 28);
-    graphics.strokeEllipse(x + 10, y - 4, 20, 28);
+    graphics.fillCircle(x - 8, y + 2, 13);
+    graphics.strokeCircle(x - 8, y + 2, 13);
+    graphics.fillCircle(x + 9, y - 5, 12);
+    graphics.strokeCircle(x + 9, y - 5, 12);
+    graphics.lineStyle(2, 0x152020, 0.72);
+    graphics.lineBetween(x - 17, y + 12, x + 17, y - 16);
     return;
   }
   if (kind === "water") {
@@ -322,8 +340,8 @@ function drawGlyphShape(graphics: Phaser.GameObjects.Graphics, kind: GlyphKind, 
   if (kind === "bloom") {
     for (let i = 0; i < 6; i += 1) {
       const angle = (Math.PI * 2 * i) / 6;
-      graphics.fillEllipse(x + Math.cos(angle) * 13, y + Math.sin(angle) * 13, 18, 28, angle);
-      graphics.strokeEllipse(x + Math.cos(angle) * 13, y + Math.sin(angle) * 13, 18, 28);
+      graphics.fillCircle(x + Math.cos(angle) * 13, y + Math.sin(angle) * 13, 10);
+      graphics.strokeCircle(x + Math.cos(angle) * 13, y + Math.sin(angle) * 13, 10);
     }
     graphics.fillStyle(0xfff1a8, 1);
     graphics.fillCircle(x, y, 8);
@@ -338,10 +356,10 @@ function drawGlyphShape(graphics: Phaser.GameObjects.Graphics, kind: GlyphKind, 
     return;
   }
   if (kind === "moth") {
-    graphics.fillEllipse(x - 14, y, 24, 40, -0.5);
-    graphics.strokeEllipse(x - 14, y, 24, 40);
-    graphics.fillEllipse(x + 14, y, 24, 40, 0.5);
-    graphics.strokeEllipse(x + 14, y, 24, 40);
+    graphics.fillCircle(x - 15, y, 16);
+    graphics.strokeCircle(x - 15, y, 16);
+    graphics.fillCircle(x + 15, y, 16);
+    graphics.strokeCircle(x + 15, y, 16);
     graphics.fillStyle(0x1b1924, 1);
     graphics.fillRoundedRect(x - 4, y - 18, 8, 36, 4);
     return;
@@ -386,4 +404,28 @@ function colorValue(color: GlyphColor): number {
   if (color === "blue") return 0x72c7e8;
   if (color === "gold") return 0xffd166;
   return 0xc9a4ff;
+}
+
+function loadUnlockIds(): UnlockId[] {
+  try {
+    const raw = window.localStorage.getItem(UNLOCK_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as string[]) : [];
+    const valid: UnlockId[] = ["wildRules", "startingRune", "expandedPool", "hardGoals", "boardVariants"];
+    return parsed.filter((id): id is UnlockId => valid.includes(id as UnlockId));
+  } catch {
+    return [];
+  }
+}
+
+function persistUnlock(state: GardenState): void {
+  if (!state.newUnlock) {
+    return;
+  }
+  const unlocks = new Set(loadUnlockIds());
+  unlocks.add(state.newUnlock.id);
+  try {
+    window.localStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(Array.from(unlocks)));
+  } catch {
+    state.message = `${state.message} 언락 저장은 브라우저 설정 때문에 건너뛰었습니다.`;
+  }
 }

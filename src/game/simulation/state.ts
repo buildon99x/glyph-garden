@@ -3,8 +3,10 @@ import type { CandidateSlot } from "../input/actions";
 export type Phase = "playing" | "reward" | "won" | "lost";
 export type GlyphKind = "seed" | "water" | "bloom" | "stone" | "moth" | "prism";
 export type RuleId = "rain" | "night" | "dry" | "crystal" | "oldStone" | "wildRows" | "quietMoths";
-export type GoalId = "score" | "blooms" | "chain" | "stones" | "empty" | "moths" | "prisms" | "watered";
-export type RuneId = "springWell" | "stoneHeart" | "moonLamp" | "prismLens" | "extraTurn" | "goalSwap";
+export type GoalId = "score" | "blooms" | "chain" | "stones" | "empty" | "moths" | "prisms" | "watered" | "boss";
+export type RuneId = "springWell" | "stoneHeart" | "moonLamp" | "prismLens" | "extraTurn" | "goalSwap" | "waterSigil" | "clearingCharm";
+export type UnlockId = "wildRules" | "startingRune" | "expandedPool" | "hardGoals" | "boardVariants";
+export type RunMode = "standard" | "daily";
 
 export interface GridPoint {
   x: number;
@@ -48,6 +50,12 @@ export interface Rune {
   text: string;
 }
 
+export interface Unlock {
+  id: UnlockId;
+  name: string;
+  text: string;
+}
+
 export interface PlacementRecord {
   kind: GlyphKind;
   x: number;
@@ -61,6 +69,7 @@ export interface GardenState {
   width: number;
   height: number;
   phase: Phase;
+  mode: RunMode;
   garden: number;
   maxGardens: number;
   turn: number;
@@ -68,12 +77,15 @@ export interface GardenState {
   totalScore: number;
   gardenScore: number;
   bestChain: number;
+  wateredSeeds: number;
   selectedSlot: CandidateSlot;
   board: Array<GlyphTile | null>;
   candidates: CandidateTile[];
   rules: WorldRule[];
   goals: Goal[];
   runes: Rune[];
+  unlocks: Unlock[];
+  newUnlock: Unlock | null;
   rewardChoices: Rune[];
   message: string;
   lastPlacement: PlacementRecord | null;

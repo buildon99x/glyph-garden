@@ -4,16 +4,20 @@ A short-run replayable puzzle game built with Phaser and Vite.
 
 ## Play
 
-Choose one of the three glyph candidates, then click an empty plot on the 6x6 board. Each placement scores immediately and may trigger reactions with neighboring glyphs. Complete enough goals before the garden runs out of turns to earn a rune and continue the run.
+Choose one of the three glyph candidates, then click an empty plot on the 6x6 board. Each garden starts with a small random board to react against. Each placement scores immediately and may trigger reactions with neighboring glyphs. Complete enough goals before the garden runs out of turns to earn a rune and continue the run.
 
 ## Core Loop
 
 - 5 gardens per run
 - 12 turns per garden, plus rune modifiers
 - 3 candidate glyphs each turn
-- 2 world rules per early garden, 3 in late gardens
+- 2 world rules in gardens 1-2, then 3 from garden 3 onward
 - 3 goals per garden, usually requiring 2 completed goals to continue
-- Rune rewards between successful gardens
+- Completing all 3 goals increases the rune reward choices
+- A special chain goal in the fifth garden
+- Rune rewards between successful gardens, including candidate, board, score, and goal-rule modifiers
+- Permanent unlocks after completed runs that add advanced rules, starting runes, expanded glyph pools, harder goals, and board variants
+- A daily challenge button that starts a fixed date-seeded run
 
 ## Glyphs
 

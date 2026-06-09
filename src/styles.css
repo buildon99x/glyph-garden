@@ -172,6 +172,7 @@ button:disabled {
 .rule-list,
 .goal-list,
 .rune-list,
+.unlock-list,
 .last-move,
 .actions {
   display: grid;
@@ -403,6 +404,13 @@ button:disabled {
   background: #4f5960;
 }
 
+.run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: end;
+}
+
 .hidden {
   display: none;
 }
@@ -435,7 +443,7 @@ button:disabled {
   .sidepanel {
     grid-column: 1;
     grid-row: 2;
-    max-height: 260px;
+    max-height: 118px;
   }
 
   .center {
@@ -446,5 +454,13 @@ button:disabled {
     grid-column: 1;
     grid-row: 4;
     grid-template-columns: 1fr;
+  }
+
+  .run-actions {
+    justify-content: stretch;
+  }
+
+  .run-actions .restart-small {
+    flex: 1 1 96px;
   }
 }
