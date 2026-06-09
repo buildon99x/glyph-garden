@@ -173,11 +173,14 @@ Run from the repo root:
 ```bash
 npm install         # Install dependencies
 npm run dev         # Start the Vite dev server
+npm run typecheck   # TypeScript contract check only
+npm run lint        # Fast ESLint check for source TypeScript
+npm run check       # Typecheck + lint
 npm run build       # Type-check and build the production bundle
 npm run preview     # Serve the production build locally
 ```
 
-Use `npm run build` as the minimum completion check for code changes. If the task affects UI, also run `npm run dev` and verify the app opens.
+Use `npm run check` as the minimum completion check for TypeScript changes. Use `npm run build` before shipping, before release work, or when bundling behavior may be affected. If the task affects UI, also run `npm run dev` and verify the app opens.
 
 ### Code style
 
@@ -195,6 +198,8 @@ Use `npm run build` as the minimum completion check for code changes. If the tas
 - Keep DOM HUD code in `src/ui/`.
 - Keep files focused on one responsibility.
 - If a file approaches unwieldy size, extract by domain behavior, not by arbitrary type buckets.
+- Treat these as split-review thresholds: simulation TS around 400 lines, Phaser scene TS around 350 lines, HUD TS around 300 lines, CSS around 350 lines.
+- When a file crosses a threshold, do not split automatically. First identify a clear responsibility boundary that lets future agents read less unrelated code.
 
 ### Architecture principles
 
