@@ -35,7 +35,17 @@ Choose one of the three glyph candidates, then click an empty plot on the 6x6 bo
 ```sh
 npm install
 npm run dev
+npm run check
 npm run build
 ```
 
 The production build verifies TypeScript and creates the deployable bundle in `dist/`.
+
+## Project Knowledge
+
+- `.context/` stores durable working knowledge for maintainers and coding agents.
+- `docs/specs/` stores specs.
+- `docs/plans/` stores implementation and investigation plans.
+- `docs/raw/` stores raw source materials and logs.
+- `docs/glossary.md` defines shared project terms.
+- `docs/release-checklist.md` lists release review steps.

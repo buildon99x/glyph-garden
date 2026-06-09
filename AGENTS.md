@@ -166,6 +166,24 @@ Dependencies flow from app boot to scene rendering to simulation state. Avoid ma
 
 When adding game behavior, put deterministic rules in `gardenSystem.ts`, state shape in `state.ts`, Phaser-only visuals in `GardenScene.ts`, and DOM-only UI in `hud.ts`.
 
+### Project Knowledge
+
+Use `.context/` for durable working knowledge and `docs/` for shareable project documents.
+
+| Path | Use |
+|------|-----|
+| `.context/kb/adr/` | Architecture decisions that constrain future work |
+| `.context/kb/lrn/` | Lessons learned from debugging, failed approaches, and user corrections |
+| `.context/kb/playbook/` | Repeatable workflows such as verification and release review |
+| `.context/kb/archive/` | Retired knowledge that should remain searchable but inactive |
+| `docs/specs/` | Product, feature, and system specifications |
+| `docs/plans/` | Implementation, investigation, and rollout plans |
+| `docs/raw/` | Raw logs, transcripts, copied references, and unprocessed notes |
+| `docs/glossary.md` | Shared gameplay, project, and release terms |
+| `docs/release-checklist.md` | Human-facing release review checklist |
+
+Before architecture, release, workflow, or multi-step implementation work, inspect the relevant `.context/kb/` and `docs/` entries. When a task creates a durable decision, lesson, or repeatable workflow, update the matching index before finishing.
+
 ### Commands
 
 Run from the repo root:
